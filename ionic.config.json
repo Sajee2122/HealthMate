@@ -1,0 +1,7 @@
+{
+  "name": "HealthMate",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
