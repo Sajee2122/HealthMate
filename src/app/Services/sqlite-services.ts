@@ -5,7 +5,7 @@ import {
   SQLiteDBConnection
 } from '@capacitor-community/sqlite';
 import { Capacitor } from '@capacitor/core';
-import { HealthRecord } from '../model/HealthRecord';
+import { HealthRecord } from '../Model/HealthRecord';
 
 @Service()
 export class SQLiteServices {
