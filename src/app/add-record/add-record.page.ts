@@ -9,12 +9,14 @@ import { SQLiteServices } from '../Services/sqlite-services';
   standalone: false,
 })
 export class AddRecordPage implements OnInit {
-// recordForm: FormGroup;
+ recordForm: FormGroup;
   recordId: number | null = null;
   isEdit = false;
   saving = false;
 
-  constructor( private sqliteService: SQLiteServices) { }
+  constructor( private sqliteService: SQLiteServices) {
+
+   }
 
   ngOnInit() {
   }
