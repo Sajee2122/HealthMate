@@ -1,16 +1,260 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>
-      sajee
-    </ion-title>
+    <ion-title>Health Mate</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
-    </ion-toolbar>
-  </ion-header>
-<h1>{{date}}</h1>
+<ion-content class="ion-padding">
+
+  <!-- Welcome Section -->
+
+  <div class="welcome-section">
+
+    <h1>My Dashboard</h1>
+
+    <p>
+      <ion-icon name="calendar-outline"></ion-icon>
+      {{ today | date:'EEEE, MMMM d, y' }}
+    </p>
+
+  </div>
+
+
+  <!-- Loading -->
+
+  <div class="loading" *ngIf="loading">
+
+    <ion-spinner name="crescent"></ion-spinner>
+
+    <p>Loading your activities...</p>
+
+  </div>
+
+
+  <!-- Error -->
+
+  <ion-text color="danger" *ngIf="errorMessage">
+    <p>{{ errorMessage }}</p>
+  </ion-text>
+
+
+  <ng-container *ngIf="!loading && !errorMessage">
+
+    <!-- Summary Heading -->
+
+    <div class="section-heading">
+      <h2>Today's Activity</h2>
+      <span>Daily Summary</span>
+    </div>
+
+
+    <!-- Steps Card -->
+
+    <ion-card class="activity-card steps-card">
+
+      <ion-card-content>
+
+        <div class="card-header">
+
+          <div class="icon-box">
+            <ion-icon name="footsteps-outline"></ion-icon>
+          </div>
+
+          <span>Steps Walked</span>
+
+        </div>
+
+        <h2>{{ steps | number }}</h2>
+
+        <p>Goal: {{ stepsGoal | number }} steps</p>
+
+        <ion-progress-bar
+          color="success"
+          [value]="getProgress(steps, stepsGoal)">
+        </ion-progress-bar>
+
+        <div class="progress-label">
+          {{ getPercentage(steps, stepsGoal) }}% completed
+        </div>
+
+      </ion-card-content>
+
+    </ion-card>
+
+
+    <!-- Calories Card -->
+
+    <ion-card class="activity-card calories-card">
+
+      <ion-card-content>
+
+        <div class="card-header">
+
+          <div class="icon-box">
+            <ion-icon name="flame-outline"></ion-icon>
+          </div>
+
+          <span>Calories Burned</span>
+
+        </div>
+
+        <h2>{{ calories | number }} <small>kcal</small></h2>
+
+        <p>Goal: {{ caloriesGoal }} kcal</p>
+
+        <ion-progress-bar
+          color="danger"
+          [value]="getProgress(calories, caloriesGoal)">
+        </ion-progress-bar>
+
+        <div class="progress-label">
+          {{ getPercentage(calories, caloriesGoal) }}% completed
+        </div>
+
+      </ion-card-content>
+
+    </ion-card>
+
+
+    <!-- Water Card -->
+
+    <ion-card class="activity-card water-card">
+
+      <ion-card-content>
+
+        <div class="card-header">
+
+          <div class="icon-box">
+            <ion-icon name="water-outline"></ion-icon>
+          </div>
+
+          <span>Water Intake</span>
+
+        </div>
+
+        <h2>{{ water | number }} <small>ml</small></h2>
+
+        <p>Goal: {{ waterGoal | number }} ml</p>
+
+        <ion-progress-bar
+          color="primary"
+          [value]="getProgress(water, waterGoal)">
+        </ion-progress-bar>
+
+        <div class="progress-label">
+          {{ getPercentage(water, waterGoal) }}% completed
+        </div>
+
+      </ion-card-content>
+
+    </ion-card>
+
+
+    <!-- Quick Actions -->
+
+    <div class="section-heading">
+      <h2>Quick Actions</h2>
+    </div>
+
+    <ion-button
+      expand="block"
+      (click)="addRecord()">
+
+      <ion-icon
+        slot="start"
+        name="add-outline">
+      </ion-icon>
+
+      Add Health Record
+
+    </ion-button>
+
+
+    <!-- Recent Records -->
+
+    <div class="section-heading recent-heading">
+
+      <h2>Recent Activities</h2>
+
+      <ion-button
+        fill="clear"
+        size="small"
+        (click)="viewRecords()">
+
+        View All
+
+        <ion-icon
+          slot="end"
+          name="arrow-forward-outline">
+        </ion-icon>
+
+      </ion-button>
+
+    </div>
+
+
+    <ion-card *ngIf="recentRecords.length === 0">
+
+      <ion-card-content class="empty-state">
+
+        <ion-icon name="fitness-outline"></ion-icon>
+
+        <h3>No Activities Yet</h3>
+
+        <p>Add your first health record to get started.</p>
+
+      </ion-card-content>
+
+    </ion-card>
+
+
+    <ion-list *ngIf="recentRecords.length > 0">
+
+      <ion-item *ngFor="let record of recentRecords">
+
+        <ion-icon
+          slot="start"
+          name="calendar-outline"
+          color="primary">
+        </ion-icon>
+
+        <ion-label>
+
+          <h3>{{ record.date }}</h3>
+
+          <p>
+            {{ record.steps | number }} steps •
+            {{ record.calories }} kcal •
+            {{ record.water }} ml
+          </p>
+
+        </ion-label>
+
+      </ion-item>
+
+    </ion-list>
+
+
+    <!-- Total Records -->
+
+    <ion-card class="total-card">
+
+      <ion-card-content>
+
+        <ion-icon name="fitness-outline"></ion-icon>
+
+        <div>
+
+          <h2>{{ totalRecords }}</h2>
+
+          <p>Total Health Records</p>
+
+        </div>
+
+      </ion-card-content>
+
+    </ion-card>
+
+  </ng-container>
+
 </ion-content>
