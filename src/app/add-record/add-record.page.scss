@@ -1,0 +1,33 @@
+ion-card {
+  margin: 10px 0 20px;
+  border-radius: 14px;
+}
+
+ion-card-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+ion-card-subtitle {
+  margin-top: 5px;
+}
+
+ion-item {
+  margin-bottom: 10px;
+}
+
+ion-button {
+  margin-top: 15px;
+  height: 45px;
+  --border-radius: 10px;
+}
+
+.error {
+  font-size: 12px;
+  margin: 4px 15px 10px;
+}
+
+ion-spinner {
+  width: 22px;
+  height: 22px;
+}
