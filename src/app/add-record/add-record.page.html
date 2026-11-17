@@ -1,13 +1,150 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>add-record</ion-title>
+
+    <ion-buttons slot="start">
+      <ion-back-button
+        defaultHref="/tabs/tab2">
+      </ion-back-button>
+    </ion-buttons>
+
+    <ion-title>
+      {{ isEdit ? 'Edit Record' : 'Add Record' }}
+    </ion-title>
+
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">add-record</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
+
+  <form [formGroup]="recordForm" (ngSubmit)="saveRecord()">
+
+    <ion-card>
+
+      <ion-card-header>
+        <ion-card-title>
+          Daily Health Activity
+        </ion-card-title>
+
+        <ion-card-subtitle>
+          Enter your daily health information
+        </ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+
+        <!-- Date -->
+        <ion-item>
+          <ion-input
+            label="Date"
+            labelPlacement="stacked"
+            type="date"
+            formControlName="date">
+          </ion-input>
+        </ion-item>
+
+        <ion-text
+          color="danger"
+          *ngIf="
+            recordForm.get('date')?.invalid &&
+            recordForm.get('date')?.touched
+          ">
+          <p class="error">Please select a date.</p>
+        </ion-text>
+
+        <!-- Steps -->
+        <ion-item>
+          <ion-input
+            label="Steps"
+            labelPlacement="stacked"
+            type="number"
+            min="0"
+            placeholder="Enter steps"
+            formControlName="steps">
+          </ion-input>
+        </ion-item>
+
+        <ion-text
+          color="danger"
+          *ngIf="
+            recordForm.get('steps')?.invalid &&
+            recordForm.get('steps')?.touched
+          ">
+          <p class="error">Enter a valid number of steps.</p>
+        </ion-text>
+
+        <!-- Calories -->
+        <ion-item>
+          <ion-input
+            label="Calories Burned (kcal)"
+            labelPlacement="stacked"
+            type="number"
+            min="0"
+            placeholder="Enter calories"
+            formControlName="calories">
+          </ion-input>
+        </ion-item>
+
+        <ion-text
+          color="danger"
+          *ngIf="
+            recordForm.get('calories')?.invalid &&
+            recordForm.get('calories')?.touched
+          ">
+          <p class="error">Enter valid calories.</p>
+        </ion-text>
+
+        <!-- Water -->
+        <ion-item>
+          <ion-input
+            label="Water Intake (ml)"
+            labelPlacement="stacked"
+            type="number"
+            min="0"
+            placeholder="Enter water intake"
+            formControlName="water">
+          </ion-input>
+        </ion-item>
+
+        <ion-text
+          color="danger"
+          *ngIf="
+            recordForm.get('water')?.invalid &&
+            recordForm.get('water')?.touched
+          ">
+          <p class="error">Enter valid water intake.</p>
+        </ion-text>
+
+      </ion-card-content>
+
+    </ion-card>
+
+    <ion-button
+      expand="block"
+      type="submit"
+      [disabled]="recordForm.invalid || saving">
+
+      <ion-spinner
+        *ngIf="saving"
+        name="crescent">
+      </ion-spinner>
+
+      <span *ngIf="!saving">
+        {{ isEdit ? 'Update Record' : 'Save Record' }}
+      </span>
+
+    </ion-button>
+
+    <ion-button
+      expand="block"
+      fill="outline"
+      color="medium"
+      type="button"
+      (click)="goBack()">
+
+      Cancel
+
+    </ion-button>
+
+  </form>
+
 </ion-content>

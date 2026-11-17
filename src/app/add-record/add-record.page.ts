@@ -12,13 +12,13 @@ import { HealthRecord } from '../Model/HealthRecord';
   standalone: false,
 })
 export class AddRecordPage implements OnInit {
- recordForm!: FormGroup;
+  recordForm: FormGroup;
   recordId: number | null = null;
   isEdit = false;
   saving = false;
 
-  constructor( 
-  private formBuilder: FormBuilder,
+  constructor(
+    private formBuilder: FormBuilder,
     private sqliteService: SQLiteServices,
     private router: Router,
     private route: ActivatedRoute,
@@ -118,12 +118,13 @@ export class AddRecordPage implements OnInit {
     try {
 
       const values = this.recordForm.value;
-      const record: HealthRecord = {
-        date: values.date,
-        steps: Number(values.steps),
-        calories: Number(values.calories),
-        water: Number(values.water)
-      };
+
+      const record = new HealthRecord(
+        values.date,
+        Number(values.steps),
+        Number(values.calories),
+        Number(values.water)
+      );
 
       if (this.isEdit && this.recordId !== null) {
 
@@ -174,6 +175,7 @@ export class AddRecordPage implements OnInit {
     await toast.present();
 
   }
+
 
 
 }
