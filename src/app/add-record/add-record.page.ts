@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SQLiteServices } from '../Services/sqlite-services';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -16,13 +16,16 @@ export class AddRecordPage implements OnInit {
   recordId: number | null = null;
   isEdit = false;
   saving = false;
+  loading = true;
+  loadError = '';
 
   constructor(
     private formBuilder: FormBuilder,
     private sqliteService: SQLiteServices,
     private router: Router,
     private route: ActivatedRoute,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private changeDetector: ChangeDetectorRef
   ) {
 
     this.recordForm = this.formBuilder.group({
@@ -47,30 +50,31 @@ export class AddRecordPage implements OnInit {
   }
 
   async ngOnInit() {
+    const id = this.route.snapshot.paramMap.get('id');
+    this.isEdit = id !== null;
 
     try {
       await this.sqliteService.initDB();
 
-      const id = this.route.snapshot.paramMap.get('id');
-
       if (id !== null) {
         const parsedId = Number(id);
 
-        if (!Number.isInteger(parsedId) || parsedId <= 0) {
-          await this.showToast('Invalid record ID', 'danger');
-          this.goBack();
+        if (!/^\d+$/.test(id) || !Number.isSafeInteger(parsedId) || parsedId <= 0) {
+          this.loadError = 'Invalid record ID.';
           return;
         }
 
         this.recordId = parsedId;
-        this.isEdit = true;
 
         await this.loadRecord(parsedId);
       }
 
     } catch (error) {
       console.error('Error initializing form:', error);
-      await this.showToast('Unable to load record', 'danger');
+      this.loadError = 'Unable to load the record form.';
+    } finally {
+      this.loading = false;
+      this.changeDetector.markForCheck();
     }
 
   }
@@ -92,8 +96,7 @@ export class AddRecordPage implements OnInit {
     const record = await this.sqliteService.getRecordById(id);
 
     if (!record) {
-      await this.showToast('Record not found', 'danger');
-      this.goBack();
+      this.loadError = 'Record not found.';
       return;
     }
 
@@ -108,7 +111,11 @@ export class AddRecordPage implements OnInit {
 
   async saveRecord() {
 
-    if (this.recordForm.invalid || this.saving) {
+    if (this.loading || this.loadError || this.saving) {
+      return;
+    }
+
+    if (this.recordForm.invalid) {
       this.recordForm.markAllAsTouched();
       return;
     }
@@ -128,10 +135,15 @@ export class AddRecordPage implements OnInit {
 
       if (this.isEdit && this.recordId !== null) {
 
-        await this.sqliteService.updateRecord(
+        const result = await this.sqliteService.updateRecord(
           this.recordId,
           record
         );
+
+        if (result.changes?.changes === 0) {
+          this.loadError = 'Record not found.';
+          return;
+        }
 
         await this.showToast('Record updated successfully');
 
@@ -152,6 +164,7 @@ export class AddRecordPage implements OnInit {
 
     } finally {
       this.saving = false;
+      this.changeDetector.markForCheck();
     }
 
   }
@@ -175,6 +188,8 @@ export class AddRecordPage implements OnInit {
     await toast.present();
 
   }
+
+
 
 
 

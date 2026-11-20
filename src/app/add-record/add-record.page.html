@@ -16,7 +16,13 @@
 
 <ion-content class="ion-padding">
 
-  <form [formGroup]="recordForm" (ngSubmit)="saveRecord()">
+  <ion-spinner *ngIf="loading" name="crescent" aria-label="Loading record"></ion-spinner>
+
+  <ion-text *ngIf="loadError" color="danger" role="alert">
+    <p>{{ loadError }}</p>
+  </ion-text>
+
+  <form *ngIf="!loading && !loadError" [formGroup]="recordForm" (ngSubmit)="saveRecord()">
 
     <ion-card>
 

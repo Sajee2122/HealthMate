@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
 
@@ -15,7 +15,7 @@ import {
 
 import { SQLiteServices } from '../Services/sqlite-services';
 import type { HealthRecord } from '../Model/HealthRecord';
-
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
@@ -23,8 +23,9 @@ import type { HealthRecord } from '../Model/HealthRecord';
   standalone: false,
 })
 export class Tab1Page {
-
-  today = '';
+ today = '';
+  private visible = false;
+  private loadId = 0;
 
   steps = 0;
   calories = 0;
@@ -43,7 +44,8 @@ export class Tab1Page {
 
   constructor(
     private sqliteService: SQLiteServices,
-    private router: Router
+    private router: Router,
+    private changeDetector: ChangeDetectorRef
   ) {
     addIcons({
       footstepsOutline,
@@ -54,11 +56,21 @@ export class Tab1Page {
       arrowForwardOutline,
       fitnessOutline
     });
+
+    this.sqliteService.recordsChanged$.pipe(takeUntilDestroyed()).subscribe(() => {
+      if (this.visible) {
+        void this.loadDashboard();
+      }
+    });
   }
 
   async ionViewWillEnter() {
-    this.today = this.getToday();
+    this.visible = true;
     await this.loadDashboard();
+  }
+
+  ionViewWillLeave() {
+    this.visible = false;
   }
 
   getToday(): string {
@@ -72,17 +84,19 @@ export class Tab1Page {
   }
 
   async loadDashboard() {
-    if (this.loading) {
-      return;
-    }
-
+    const loadId = ++this.loadId;
+    this.today = this.getToday();
     this.loading = true;
     this.errorMessage = '';
+    this.changeDetector.markForCheck();
 
     try {
       await this.sqliteService.initDB();
 
       const records = await this.sqliteService.getRecords();
+      if (loadId !== this.loadId) {
+        return;
+      }
 
       const todayRecords = records.filter(
         record => record.date === this.today
@@ -108,10 +122,15 @@ export class Tab1Page {
       this.recentRecords = records.slice(0, 5);
 
     } catch (error) {
-      console.error('Dashboard loading failed:', error);
-      this.errorMessage = 'Unable to load health records.';
+      if (loadId === this.loadId) {
+        console.error('Dashboard loading failed:', error);
+        this.errorMessage = 'Unable to load health records.';
+      }
     } finally {
-      this.loading = false;
+      if (loadId === this.loadId) {
+        this.loading = false;
+        this.changeDetector.markForCheck();
+      }
     }
   }
 
@@ -120,7 +139,7 @@ export class Tab1Page {
       return 0;
     }
 
-    return Math.min(1, Math.max(0, value / goal));
+    return Math.min(value / goal, 1);
   }
 
   getPercentage(value: number, goal: number): number {
@@ -134,4 +153,6 @@ export class Tab1Page {
   viewRecords() {
     this.router.navigate(['/tabs/tab2']);
   }
+
+
 }
