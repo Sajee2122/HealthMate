@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -23,66 +23,61 @@ import type { HealthRecord } from '../Model/HealthRecord';
 })
 export class Tab2Page {
 
-  records: HealthRecord[] = [];
+   records: HealthRecord[] = [];
   selectedDate = '';
   loading = false;
+  errorMessage = '';
+  private searchDate = '';
+  private loadId = 0;
 
   constructor(
     private sqliteService: SQLiteServices,
     private router: Router,
-    private alertController: AlertController
-  ) {
-    addIcons({
-      documentTextOutline,
-      footstepsOutline,
-      flameOutline,
-      waterOutline,
-      add
-    });
-  }
+    private alertController: AlertController,
+    private changeDetector: ChangeDetectorRef
+  ) {}
 
   async ionViewWillEnter() {
-    await this.loadRecords();
+    await this.clearFilter();
   }
 
   async loadRecords() {
+    const loadId = ++this.loadId;
+    const date = this.searchDate;
     this.loading = true;
+    this.errorMessage = '';
+    this.changeDetector.markForCheck();
 
     try {
       await this.sqliteService.initDB();
+      const records = date
+        ? await this.sqliteService.getRecordsByDate(date)
+        : await this.sqliteService.getRecords();
 
-      if (this.selectedDate) {
-        this.records =
-          await this.sqliteService.getRecordsByDate(
-            this.selectedDate
-          );
-      } else {
-        this.records =
-          await this.sqliteService.getRecords();
+      if (loadId === this.loadId) {
+        this.records = records;
       }
-
     } catch (error) {
-      console.error('Error loading records:', error);
-      this.records = [];
-
-      await this.showAlert(
-        'Error',
-        'Unable to load health records.'
-      );
-
+      if (loadId === this.loadId) {
+        console.error('Error loading records:', error);
+        this.errorMessage = 'Unable to load health records.';
+      }
     } finally {
-      this.loading = false;
+      if (loadId === this.loadId) {
+        this.loading = false;
+        this.changeDetector.markForCheck();
+      }
     }
   }
 
-  async filterRecords(event: any) {
-    this.selectedDate = event.detail.value || '';
+  async searchRecords() {
+    this.searchDate = this.selectedDate;
     await this.loadRecords();
   }
 
   async clearFilter() {
     this.selectedDate = '';
-    await this.loadRecords();
+    await this.searchRecords();
   }
 
   addRecord() {
@@ -94,7 +89,6 @@ export class Tab2Page {
   }
 
   async deleteRecord(id: number) {
-
     const alert = await this.alertController.create({
       header: 'Delete Record',
       message: 'Are you sure you want to delete this record?',
@@ -106,36 +100,16 @@ export class Tab2Page {
         {
           text: 'Delete',
           role: 'destructive',
-          handler: () => {
-            void this.confirmDelete(id);
+          handler: async () => {
+            try {
+              await this.sqliteService.deleteRecord(id);
+              await this.loadRecords();
+            } catch (error) {
+              console.error('Error deleting record:', error);
+            }
           }
         }
       ]
-    });
-
-    await alert.present();
-  }
-
-  async confirmDelete(id: number) {
-    try {
-      await this.sqliteService.deleteRecord(id);
-      await this.loadRecords();
-
-    } catch (error) {
-      console.error('Error deleting record:', error);
-
-      await this.showAlert(
-        'Error',
-        'Unable to delete the record.'
-      );
-    }
-  }
-
-  async showAlert(header: string, message: string) {
-    const alert = await this.alertController.create({
-      header,
-      message,
-      buttons: ['OK']
     });
 
     await alert.present();

@@ -13,8 +13,15 @@
       label="Search by Date"
       labelPlacement="stacked"
       [value]="selectedDate"
-      (ionChange)="filterRecords($event)">
+      (ionInput)="selectedDate = $event.detail.value ?? ''">
     </ion-input>
+
+    <ion-button
+      slot="end"
+      [disabled]="!selectedDate"
+      (click)="searchRecords()">
+      Search
+    </ion-button>
 
     <ion-button
       slot="end"
@@ -29,18 +36,20 @@
     <ion-spinner name="crescent"></ion-spinner>
   </div>
 
+  <ion-text color="danger" *ngIf="errorMessage">
+    <p>{{ errorMessage }}</p>
+  </ion-text>
+
+  <ng-container *ngIf="!loading && !errorMessage">
   <!-- Empty state -->
   <div
-    *ngIf="!loading && records.length === 0"
+    *ngIf="records.length === 0"
     class="empty-state">
 
     <ion-icon name="document-text-outline"></ion-icon>
 
-    <p>
-  {{ selectedDate
-    ? 'No health records found for this date.'
-    : 'Start tracking your daily health activities.' }}
-   </p>
+    <h3>No Records Found</h3>
+    <p>Start tracking your daily health activities.</p>
 
   </div>
 
@@ -103,6 +112,7 @@
     </ion-card-content>
 
   </ion-card>
+  </ng-container>
 
   <!-- Add Record Button -->
   <ion-fab

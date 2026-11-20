@@ -6,6 +6,7 @@ import {
 } from '@capacitor-community/sqlite';
 import { Capacitor } from '@capacitor/core';
 import { HealthRecord } from '../Model/HealthRecord';
+import { Subject } from 'rxjs';
 
 @Service()
 export class SQLiteServices {
@@ -13,6 +14,8 @@ export class SQLiteServices {
    private sqlite = new SQLiteConnection(CapacitorSQLite);
   private db: SQLiteDBConnection | null = null;
   private dbName = 'healthmate_db';
+  private readonly recordsChanged = new Subject<void>();
+  readonly recordsChanged$ = this.recordsChanged.asObservable();
 
   constructor() {}
 
@@ -34,7 +37,14 @@ export class SQLiteServices {
 private async initializeDatabase(): Promise<void> {
   try {
     if (Capacitor.getPlatform() === 'web') {
-      await customElements.whenDefined('jeep-sqlite');
+      const { defineCustomElements } = await import('jeep-sqlite/loader');
+      await defineCustomElements(window);
+      if (!document.querySelector('jeep-sqlite')) {
+        const element = document.createElement('jeep-sqlite');
+        const assetsPath = new URL('assets', document.baseURI).pathname;
+        element.setAttribute('wasmpath', assetsPath);
+        document.body.appendChild(element);
+      }
       await this.sqlite.initWebStore();
     }
 
@@ -66,9 +76,8 @@ private async initializeDatabase(): Promise<void> {
       await connection.open();
     }
 
+    await this.createTable(connection);
     this.db = connection;
-
-    await this.createTable();
 
     console.log('SQLite database ready');
 
@@ -78,7 +87,7 @@ private async initializeDatabase(): Promise<void> {
     throw error;
   }
 }
-  private async createTable() {
+  private async createTable(connection: SQLiteDBConnection) {
     const query = `
       CREATE TABLE IF NOT EXISTS health_records (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -89,7 +98,7 @@ private async initializeDatabase(): Promise<void> {
       )
     `;
 
-    await this.getDB().execute(query);
+    await connection.execute(query);
     await this.saveWebDB();
   }
 
@@ -110,6 +119,7 @@ private async initializeDatabase(): Promise<void> {
   ]);
 
   await this.saveWebDB();
+  this.recordsChanged.next();
 
   return result;
 }
@@ -146,6 +156,7 @@ private async initializeDatabase(): Promise<void> {
     ]);
 
     await this.saveWebDB();
+    this.recordsChanged.next();
     return result;
   }
 
@@ -156,6 +167,7 @@ private async initializeDatabase(): Promise<void> {
     );
 
     await this.saveWebDB();
+    this.recordsChanged.next();
     return result;
   }
 
@@ -181,5 +193,6 @@ private async initializeDatabase(): Promise<void> {
       await this.sqlite.saveToStore(this.dbName);
     }
   }
+
 
 }
