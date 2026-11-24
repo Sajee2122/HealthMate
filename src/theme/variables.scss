@@ -1,2 +1,30 @@
 // For information on how to create your own theme, please refer to:
 // https://ionicframework.com/docs/theming/
+
+:root,
+:root.ios,
+:root.md {
+  color-scheme: dark;
+  --ion-background-color: #0b1730;
+  --ion-background-color-rgb: 11, 23, 48;
+  --ion-text-color: #f3f6fc;
+  --ion-text-color-rgb: 243, 246, 252;
+  --ion-card-background: #152844;
+  --ion-item-background: #152844;
+  --ion-toolbar-background: #0b1730;
+  --ion-toolbar-color: #f3f6fc;
+  --ion-tab-bar-background: #0b1730;
+  --ion-tab-bar-color: #a5b5cb;
+  --ion-tab-bar-color-selected: #7ca6ff;
+  --ion-border-color: #2b405d;
+  --ion-color-primary: #7ca6ff;
+  --ion-color-primary-rgb: 124, 166, 255;
+  --ion-color-primary-contrast: #0b1730;
+  --ion-color-primary-shade: #6d92e0;
+  --ion-color-primary-tint: #89afff;
+  --ion-color-medium: #a5b5cb;
+  --ion-color-medium-rgb: 165, 181, 203;
+  --ion-color-medium-contrast: #0b1730;
+  --ion-color-medium-shade: #91a0b3;
+  --ion-color-medium-tint: #aebcd0;
+}

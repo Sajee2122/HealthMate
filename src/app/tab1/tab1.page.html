@@ -1,6 +1,13 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Health Mate</ion-title>
+    <ion-title>
+      <div class="app-brand" aria-label="HealthMate">
+        <span class="brand-icon" aria-hidden="true">
+          <ion-icon name="fitness-outline"></ion-icon>
+        </span>
+        <span class="brand-name">Health<span>Mate</span></span>
+      </div>
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -48,192 +55,31 @@
     </div>
 
 
-    <!-- Steps Card -->
-
-    <ion-card class="activity-card steps-card">
-
-      <ion-card-content>
-
-        <div class="card-header">
-
-          <div class="icon-box">
-            <ion-icon name="footsteps-outline"></ion-icon>
+    <section class="activity-overview" aria-label="Today's goal progress">
+      <div class="goal-pie">
+        <canvas #goalCanvas role="img"
+          [attr.aria-label]="'Average daily goal completion: ' + overallProgress + '%'"></canvas>
+        <div class="pie-caption">
+          <span>Daily goals</span>
+          <strong>{{ overallProgress }}<small>%</small></strong>
+          <span>Average complete</span>
+        </div>
+      </div>
+      <div class="metric-panels">
+        <div *ngFor="let metric of goalMetrics" class="metric-panel"
+          [style.background]="metric.background">
+          <div class="metric-fill"
+            [style.background]="metric.fill"
+            [style.width.%]="getPercentage(this[metric.key], this[metric.goal])"></div>
+          <ion-icon [name]="metric.icon" aria-hidden="true"></ion-icon>
+          <div class="metric-copy">
+            <span>{{ metric.label }}</span>
+            <strong>{{ this[metric.key] | number }} <small>{{ metric.unit }}</small></strong>
+            <span>of {{ this[metric.goal] | number }} {{ metric.unit }}</span>
           </div>
-
-          <span>Steps Walked</span>
-
         </div>
-
-        <h2>{{ steps | number }}</h2>
-
-        <p>Goal: {{ stepsGoal | number }} steps</p>
-
-        <ion-progress-bar
-          color="success"
-          [value]="getProgress(steps, stepsGoal)">
-        </ion-progress-bar>
-
-        <div class="progress-label">
-          {{ getPercentage(steps, stepsGoal) }}% completed
-        </div>
-
-      </ion-card-content>
-
-    </ion-card>
-
-
-    <!-- Calories Card -->
-
-    <ion-card class="activity-card calories-card">
-
-      <ion-card-content>
-
-        <div class="card-header">
-
-          <div class="icon-box">
-            <ion-icon name="flame-outline"></ion-icon>
-          </div>
-
-          <span>Calories Burned</span>
-
-        </div>
-
-        <h2>{{ calories | number }} <small>kcal</small></h2>
-
-        <p>Goal: {{ caloriesGoal }} kcal</p>
-
-        <ion-progress-bar
-          color="danger"
-          [value]="getProgress(calories, caloriesGoal)">
-        </ion-progress-bar>
-
-        <div class="progress-label">
-          {{ getPercentage(calories, caloriesGoal) }}% completed
-        </div>
-
-      </ion-card-content>
-
-    </ion-card>
-
-
-    <!-- Water Card -->
-
-    <ion-card class="activity-card water-card">
-
-      <ion-card-content>
-
-        <div class="card-header">
-
-          <div class="icon-box">
-            <ion-icon name="water-outline"></ion-icon>
-          </div>
-
-          <span>Water Intake</span>
-
-        </div>
-
-        <h2>{{ water | number }} <small>ml</small></h2>
-
-        <p>Goal: {{ waterGoal | number }} ml</p>
-
-        <ion-progress-bar
-          color="primary"
-          [value]="getProgress(water, waterGoal)">
-        </ion-progress-bar>
-
-        <div class="progress-label">
-          {{ getPercentage(water, waterGoal) }}% completed
-        </div>
-
-      </ion-card-content>
-
-    </ion-card>
-
-
-    <!-- Quick Actions -->
-
-    <div class="section-heading">
-      <h2>Quick Actions</h2>
-    </div>
-
-    <ion-button
-      expand="block"
-      (click)="addRecord()">
-
-      <ion-icon
-        slot="start"
-        name="add-outline">
-      </ion-icon>
-
-      Add Health Record
-
-    </ion-button>
-
-
-    <!-- Recent Records -->
-
-    <div class="section-heading recent-heading">
-
-      <h2>Recent Activities</h2>
-
-      <ion-button
-        fill="clear"
-        size="small"
-        (click)="viewRecords()">
-
-        View All
-
-        <ion-icon
-          slot="end"
-          name="arrow-forward-outline">
-        </ion-icon>
-
-      </ion-button>
-
-    </div>
-
-
-    <ion-card *ngIf="recentRecords.length === 0">
-
-      <ion-card-content class="empty-state">
-
-        <ion-icon name="fitness-outline"></ion-icon>
-
-        <h3>No Activities Yet</h3>
-
-        <p>Add your first health record to get started.</p>
-
-      </ion-card-content>
-
-    </ion-card>
-
-
-    <ion-list *ngIf="recentRecords.length > 0">
-
-      <ion-item *ngFor="let record of recentRecords">
-
-        <ion-icon
-          slot="start"
-          name="calendar-outline"
-          color="primary">
-        </ion-icon>
-
-        <ion-label>
-
-          <h3>{{ record.date }}</h3>
-
-          <p>
-            {{ record.steps | number }} steps •
-            {{ record.calories }} kcal •
-            {{ record.water }} ml
-          </p>
-
-        </ion-label>
-
-      </ion-item>
-
-    </ion-list>
-
+      </div>
+    </section>
 
     <!-- Total Records -->
 

@@ -1,0 +1,30 @@
+.app-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.brand-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #477df566;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #244778, #142844);
+  color: #94b7ff;
+  font-size: 24px;
+}
+
+.brand-name {
+  color: #f3f6fc;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+
+  span {
+    color: #94b7ff;
+  }
+}
