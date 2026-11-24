@@ -1,8 +1,8 @@
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, QueryList, ViewChildren } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Chart, ArcElement, DoughnutController, Tooltip } from 'chart.js';
 
-import { ChangeDetectorRef, Component } from '@angular/core';
-import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-
 import {
   footstepsOutline,
   flameOutline,
@@ -12,18 +12,29 @@ import {
   arrowForwardOutline,
   fitnessOutline
 } from 'ionicons/icons';
-
+import { Router } from '@angular/router';
 import { SQLiteServices } from '../Services/sqlite-services';
-import type { HealthRecord } from '../Model/HealthRecord';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HealthRecord } from '../Model/HealthRecord';
+
+Chart.register(ArcElement, DoughnutController, Tooltip);
+
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss'],
   standalone: false,
 })
-export class Tab1Page {
- today = '';
+export class Tab1Page implements AfterViewInit, OnDestroy {
+
+  @ViewChildren('goalCanvas') private goalCanvases!: QueryList<ElementRef<HTMLCanvasElement>>;
+  private charts: Chart<'doughnut'>[] = [];
+  readonly goalMetrics = [
+    { label: 'Steps', key: 'steps', goal: 'stepsGoal', icon: 'footsteps-outline', unit: '', background: '#b4f2e7', fill: '#76dfce' },
+    { label: 'Calories', key: 'calories', goal: 'caloriesGoal', icon: 'flame-outline', unit: 'kcal', background: '#dcf3cd', fill: '#b9e79f' },
+    { label: 'Water', key: 'water', goal: 'waterGoal', icon: 'water-outline', unit: 'ml', background: '#ecddff', fill: '#d7b7fa' }
+  ] as const;
+
+  today = '';
   private visible = false;
   private loadId = 0;
 
@@ -71,6 +82,47 @@ export class Tab1Page {
 
   ionViewWillLeave() {
     this.visible = false;
+  }
+
+  ngAfterViewInit() {
+    this.goalCanvases.changes.subscribe(() => this.renderCharts());
+    this.renderCharts();
+  }
+
+  ngOnDestroy() {
+    this.charts.forEach(chart => chart.destroy());
+  }
+
+  private renderCharts() {
+    this.charts.forEach(chart => chart.destroy());
+    this.charts = (this.goalCanvases?.toArray() ?? []).map(canvas => {
+      const completed = this.overallProgress;
+      return new Chart(canvas.nativeElement, {
+        type: 'doughnut',
+        data: {
+          labels: ['Completed', 'Remaining'],
+          datasets: [{
+            data: [completed, 100 - completed],
+            backgroundColor: ['#477df5', '#e4e9f0'],
+            borderWidth: 0,
+            borderRadius: 20,
+            spacing: 0,
+            hoverOffset: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '76%',
+          animation: { duration: 600 },
+          plugins: {
+            tooltip: {
+              callbacks: { label: context => ` ${context.label}: ${context.parsed}%` }
+            }
+          }
+        }
+      });
+    });
   }
 
   getToday(): string {
@@ -129,6 +181,7 @@ export class Tab1Page {
     } finally {
       if (loadId === this.loadId) {
         this.loading = false;
+        this.renderCharts();
         this.changeDetector.markForCheck();
       }
     }
@@ -144,6 +197,14 @@ export class Tab1Page {
 
   getPercentage(value: number, goal: number): number {
     return Math.round(this.getProgress(value, goal) * 100);
+  }
+
+  get overallProgress(): number {
+    const completed = this.goalMetrics.reduce(
+      (total, metric) => total + this.getProgress(this[metric.key], this[metric.goal]),
+      0
+    );
+    return Math.round(completed / this.goalMetrics.length * 100);
   }
 
   addRecord() {
